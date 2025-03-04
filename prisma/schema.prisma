@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  articles  Article[]
+  createdAt DateTime  @default(now())
+}
+
+model Article {
+  id        String       @id @default(uuid())
+  title     String
+  content   String
+  isPublic  Boolean      @default(false)
+  author    User         @relation(fields: [authorId], references: [id])
+  authorId  String
+  tags      ArticleTag[]
+  createdAt DateTime     @default(now())
+
+  @@index([isPublic])
+  @@index([createdAt])
+  @@index([authorId])
+}
+
+model Tag {
+  id       String       @id @default(uuid())
+  name     String       @unique
+  articles ArticleTag[]
+
+  @@index([name])
+}
+
+model ArticleTag {
+  article   Article @relation(fields: [articleId], references: [id])
+  articleId String
+  tag       Tag     @relation(fields: [tagId], references: [id])
+  tagId     String
+
+  @@id([articleId, tagId])
+  @@index([tagId, articleId])
+}
