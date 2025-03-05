@@ -5,10 +5,16 @@ import {
   HttpStatus,
   Post,
   UseGuards,
-  Req, Delete,
+  Req,
+  Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -40,6 +46,7 @@ export class AuthController {
     return await this.authService.login(req.user.id);
   }
 
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Обновление токена доступа' })
   @ApiResponse({ type: LoginResponseDto, description: 'New access-token' })
   @UseGuards(RefreshAuthGuard)
@@ -48,6 +55,12 @@ export class AuthController {
     return await this.authService.refreshToken(req.user.id);
   }
 
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Выход из системы' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Выход выполнен успешно',
+  })
   @UseGuards(JwtAuthGuard)
   @Delete('sign-out')
   async signOut(@Req() req: CustomRequest): Promise<void> {
