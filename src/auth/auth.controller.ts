@@ -5,7 +5,7 @@ import {
   HttpStatus,
   Post,
   UseGuards,
-  Req,
+  Req, Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBody, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -16,6 +16,7 @@ import { LoginResponseDto } from './dto/login-response.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CustomRequest } from './types/custom-request';
 import { RefreshAuthGuard } from './guards/refresh-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -45,5 +46,11 @@ export class AuthController {
   @Post('refresh')
   async refreshToken(@Req() req: CustomRequest): Promise<LoginResponseDto> {
     return await this.authService.refreshToken(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('sign-out')
+  async signOut(@Req() req: CustomRequest): Promise<void> {
+    await this.authService.signOut(req.user.id);
   }
 }

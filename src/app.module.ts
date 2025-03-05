@@ -4,6 +4,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { KnowledgeBaseModule } from './knowledge-base/knowledge-base.module';
     AuthModule,
     UserModule,
     KnowledgeBaseModule,
+    RedisModule,
   ],
 })
 export class AppModule {}

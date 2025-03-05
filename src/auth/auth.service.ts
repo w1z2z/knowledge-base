@@ -9,6 +9,7 @@ import refreshJwtConfig from './config/refresh-jwt.config';
 import { ConfigType } from '@nestjs/config';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { RegisterResponseDto } from './dto/register-response.dto';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -17,6 +18,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     @Inject(refreshJwtConfig.KEY)
     private readonly refreshTokenConfig: ConfigType<typeof refreshJwtConfig>,
+    private readonly redisService: RedisService,
   ) {}
 
   async validateUser({ email, password }: LoginDto) {
@@ -68,21 +70,41 @@ export class AuthService {
 
   async generateTokens(userId: string) {
     const payload: AuthJwtPayload = { sub: userId };
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.sign(payload),
       this.jwtService.sign(payload, this.refreshTokenConfig),
     ]);
-    //записывать рефреш токен в редис
+
+    const hashedRefreshToken = await argon2.hash(refreshToken);
+
+    await this.redisService.set(userId, hashedRefreshToken, 604800);
     return { accessToken, refreshToken };
   }
 
-  // async validateRefreshToken(userId: number, refreshToken: string) {
-  //   //получать токен из редиса и сравнивать его с переданным и если не равны, кидать ошибку
-  //
-  //   return { id: userId };
-  // }
-  //
-  // async signOut(){
-  //   //удалять рефреш токен из редиса
-  // }
+  async validateRefreshToken(userId: string, refreshToken: string) {
+    const hashedRefreshToken = await this.redisService.get(userId);
+    if (!hashedRefreshToken) {
+      throw new HttpException(
+        'Недействительный токен!',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const refreshTokenMatches = await argon2.verify(
+      hashedRefreshToken,
+      refreshToken,
+    );
+    if (!refreshTokenMatches)
+      throw new HttpException(
+        'Недействительный токен!',
+        HttpStatus.UNAUTHORIZED,
+      );
+
+    return { id: userId };
+  }
+
+  async signOut(userId: string) {
+    await this.redisService.del(userId);
+  }
 }
