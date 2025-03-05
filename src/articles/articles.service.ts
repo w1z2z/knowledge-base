@@ -11,6 +11,7 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateArticleResponseDto } from './dto/create-article-response.dto';
 import { Prisma } from '@prisma/client';
 import { FindOneDto } from './dto/find-one.dto';
+import { PaginatedArticlesDto } from './dto/paginated-articles.dto';
 
 @Injectable()
 export class ArticlesService {
@@ -56,65 +57,51 @@ export class ArticlesService {
     });
   }
 
-  async findAll(tags: string[] = [], isPublic?: boolean) {
+  async findAll(
+    tags: string[] = [],
+    isPublic?: boolean,
+  ): Promise<PaginatedArticlesDto> {
     const normalizedTags = tags
       .map((tag) => tag.trim().toLowerCase())
-      .filter((tag) => tag.length > 0);
+      .filter(Boolean);
 
     const where: Prisma.ArticleWhereInput = {
-      // @ts-ignore
       AND: [
-        isPublic !== undefined ? { isPublic } : {},
-
-        normalizedTags.length > 0 ? { tags: { some: {} } } : {},
-
-        ...normalizedTags.map((tag) => ({
-          tags: {
-            some: {
-              tag: {
-                name: {
-                  equals: tag,
-                  mode: 'insensitive',
-                },
-              },
+        isPublic !== undefined && { isPublic },
+        normalizedTags.length && {
+          AND: normalizedTags.map((tag) => ({
+            tags: {
+              some: { tag: { name: { equals: tag, mode: 'insensitive' } } },
             },
-          },
-        })),
-      ].filter((condition) => condition !== undefined),
+          })),
+        },
+      ].filter(Boolean) as Prisma.ArticleWhereInput[],
     };
 
-    const articles = await this.prismaService.article.findMany({
-      where,
-      select: {
-        id: true,
-        title: true,
-        content: true,
-        createdAt: true,
-        isPublic: true,
-        tags: {
-          select: {
-            tag: {
-              select: {
-                name: true,
-              },
-            },
-          },
+    const [articles, total] = await Promise.all([
+      this.prismaService.article.findMany({
+        where,
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          createdAt: true,
+          isPublic: true,
+          tags: { select: { tag: { select: { name: true } } } },
+          author: { select: { id: true, username: true } },
         },
-        author: {
-          select: {
-            id: true,
-            username: true,
-          },
-        },
-      },
-    });
-    console.log(articles.length);
+      }),
+      this.prismaService.article.count({ where }),
+    ]);
 
-    return articles.map((article) => ({
-      ...article,
-      createdAt: article.createdAt.toISOString(),
-      tags: article.tags.map((t) => t.tag.name),
-    }));
+    return {
+      articles: articles.map(({ createdAt, tags, ...article }) => ({
+        ...article,
+        createdAt: createdAt.toISOString(),
+        tags: tags.map(({ tag }) => tag.name),
+      })),
+      total,
+    };
   }
 
   async findOne(id: string, isPublic?: boolean): Promise<FindOneDto> {
@@ -207,10 +194,10 @@ export class ArticlesService {
     };
   }
 
-  async remove(id: string, userId: string) {
+  async remove(id: string, userId: string): Promise<string> {
     const article = await this.prismaService.article.findUnique({
       where: { id },
-      include: { tags: true }, // Включаем теги, чтобы потом вернуть удалённую статью
+      include: { tags: true },
     });
 
     if (!article) {
@@ -234,6 +221,6 @@ export class ArticlesService {
       }),
     ]);
 
-    return deletedArticle;
+    return deletedArticle.id;
   }
 }

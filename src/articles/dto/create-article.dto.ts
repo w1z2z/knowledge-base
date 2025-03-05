@@ -4,7 +4,6 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  ArrayNotEmpty,
   ArrayUnique,
 } from 'class-validator';
 

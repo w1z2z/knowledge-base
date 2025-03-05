@@ -2,14 +2,15 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsUUID,
-  IsArray,
-  IsISO8601,
+  ArrayUnique,
+  IsOptional,
   ValidateNested,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AuthorDto } from './author.dto';
 
-export class FindOneDto {
+export class ArticleDto {
   @ApiProperty({
     example: '935bb130-2caf-4f27-b691-3df6b1c26fbe',
     description: 'Идентификатор статьи',
@@ -18,34 +19,25 @@ export class FindOneDto {
   id!: string;
 
   @ApiProperty({
-    example: '123',
+    example: 'Название статьи',
     description: 'Заголовок статьи',
   })
   @IsString()
   title!: string;
 
   @ApiProperty({
-    example: '123',
+    example: 'Текст статьи...',
     description: 'Содержание статьи',
   })
   @IsString()
   content!: string;
 
   @ApiProperty({
-    example: '2025-03-05T01:26:40.062Z',
-    description: 'Дата создания статьи',
+    example: true,
+    description: 'Флаг публичности статьи',
   })
-  @IsString()
-  createdAt!: string;
-
-  @ApiProperty({
-    example: ['IT'],
-    description: 'Теги статьи',
-    type: [String],
-  })
-  @IsArray()
-  @IsString({ each: true })
-  tags!: string[];
+  @IsBoolean()
+  isPublic!: boolean;
 
   @ApiProperty({
     description: 'Автор статьи',
@@ -54,4 +46,22 @@ export class FindOneDto {
   @ValidateNested()
   @Type(() => AuthorDto)
   author!: AuthorDto;
+
+  @ApiProperty({
+    example: '2025-03-05T00:46:24.282Z',
+    description: 'Дата публикации статьи',
+  })
+  @IsString()
+  createdAt!: string;
+
+  @ApiProperty({
+    example: ['NestJS', 'Prisma', 'Backend'],
+    description: 'Теги статьи',
+    type: [String],
+    required: false,
+  })
+  @IsString({ each: true })
+  @ArrayUnique()
+  @IsOptional()
+  tags?: string[] = [];
 }
