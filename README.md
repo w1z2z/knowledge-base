@@ -1,99 +1,154 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Тестовое задание
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Цель
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Backend сервис для управления статьями базы знаний: добавление, изменение, удаление и получение статей с фильтрацией по тегам. Реализована авторизация и контроль доступа
 
-## Description
+# Описание проекта
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+В проекте реализован backend сервис для управления статьями базы знаний с системой аутентификации и авторизации пользователей. Сервис позволяет работать с статьями, включая создание, редактирование, удаление и получение, а также управлять пользователями с возможностью регистрации и авторизации.
 
-## Project setup
+## Основные функции
 
+### 1. Пользователи:
+- Реализована регистрация и аутентификация пользователей с использованием JWT.
+- Пользователи могут только изменять или удалять свои собственные статьи.
+- Для авторизации используется Guard с JWT.
+
+### 2. Статьи:
+- Каждая статья включает атрибуты: заголовок, содержание, теги и публичный статус.
+- CRUD операции для статей (создание, обновление, удаление, получение).
+- Фильтрация статей по тегам и публичности.
+- Авторизованные пользователи могут создавать, редактировать и удалять статьи. Неавторизованные могут только читать публичные статьи.
+
+## Технологии
+
+- **NestJS**: Фреймворк для создания REST API, использованный для реализации бизнес-логики и структуры приложения.
+- **Prisma**: ORM для работы с базой данных PostgreSQL. Используется для обработки операций с данными и обеспечения миграций.
+- **PostgreSQL**: Реляционная база данных для хранения информации о пользователях и статьях.
+- **JWT (JSON Web Token)**: Механизм для аутентификации и авторизации пользователей.
+- **Swagger**: Автоматически генерируемая документация API для удобства использования сервиса.
+- **Docker**: Контейнеризация приложения для удобного развертывания и использования в различных средах.
+
+## Дополнительные функции
+
+- Реализован контроль доступа к статьям, где доступ к приватным статьям ограничен только авторизованными пользователями.
+
+
+## Установка и запуск
+
+1. Создать файл .env и внести в него следующие данные (пример)
+```yaml
+PORT=8000
+
+DATABASE_URL="postgresql://user:root@localhost:5432/knowledge_base?schema=public"
+
+POSTGRES_USER=user
+POSTGRES_PASSWORD=root
+POSTGRES_DB=knowledge_base
+POSTGRES_PORT=5432
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_PASSWORD=root
+REDIS_DB=0
+
+JWT_SECRET=4f730576e03d2c9c53b33dbb2764bc4e5771681dccee90eb9cba22d09d56d4c4
+JWT_EXPIRE_IN=1h
+
+REFRESH_JWT_SECRET=9e7b1b7520b9d1cc129762228be550ddad526c1a05580996cf412d539899bd02
+REFRESH_JWT_EXPIRE_IN=7d
+```
+2. Запустить докер контейнеры
 ```bash
-$ npm install
+docker-compose up --build
 ```
 
-## Compile and run the project
-
+3. Запустить миграции
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npx prisma migrate dev
 ```
 
-## Run tests
-
+3. Запустить миграции
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm run start:dev
 ```
 
-## Deployment
+3. Докуменация swagger доступна по адресу [http://localhost:8000/doc](http://localhost:8000/doc)
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+4. API будет доступно по адресу [http://localhost:8000/api](http://localhost:8000/api)
 
-```bash
-$ npm install -g mau
-$ mau deploy
+
+# Регистрация и Авторизация
+
+## 1. Регистрация нового пользователя
+
+Для регистрации нового пользователя отправьте `POST` запрос на `http://localhost:8000/api/auth/register` с телом запроса:
+
+```json
+{
+  "email": "user@gmail.com",
+  "username": "user",
+  "password": "pass"
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+В ответ придет:
+```json
+{
+  "id": "9bf6f278-2e00-4f81-92fb-dbb1ba681762",
+  "email": "user@gmail.com"
+}
+```
 
-## Resources
+## 2. Авторизация пользователя
 
-Check out a few resources that may come in handy when working with NestJS:
+Для авторизации отправьте `POST` запрос на `http://localhost:8000/api/auth/login` с телом запроса:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```json
+{
+  "email": "user@gmail.com",
+  "password": "pass"
+}
+```
 
-## Support
+В ответ придет:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjJhY2M4OS05ZDA4LTRlMjYtYjljMS05Y2ZkY2Y4Y2RmYTkiLCJpYXQiOjE3NDExNzE4ODcsImV4cCI6MTc0MTE3NTQ4N30.OYT5UhkLKCAYhJA6zYjOoLDwxgvLEhGn2g_pDa2IjLI",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjJhY2M4OS05ZDA4LTRlMjYtYjljMS05Y2ZkY2Y4Y2RmYTkiLCJpYXQiOjE3NDExNzE4ODcsImV4cCI6MTc0MTc3NjY4N30.4ogAquMTxqwVd21xqHgNqsyJ6L0CQ-y51JrD5stpuK4"
+}
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 3. Обновление токена (access-token - 1h)
 
-## Stay in touch
+Для обновления пары токенов отправьте `POST` запрос на `http://localhost:8000/api/auth/refresh` с refresh-token в хемдерах:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```json
+{
+  "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjJhY2M4OS05ZDA4LTRlMjYtYjljMS05Y2ZkY2Y4Y2RmYTkiLCJpYXQiOjE3NDExNDc3NjksImV4cCI6MTc0MTc1MjU2OX0.pPE-3jGI9F59c0y_pJkAovsMNRv-UduWkt1AnYj_-Ms",
+}
+```
 
-## License
+В ответ придет:
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjJhY2M4OS05ZDA4LTRlMjYtYjljMS05Y2ZkY2Y4Y2RmYTkiLCJpYXQiOjE3NDExNzE4ODcsImV4cCI6MTc0MTE3NTQ4N30.OYT5UhkLKCAYhJA6zYjOoLDwxgvLEhGn2g_pDa2IjLI",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjJhY2M4OS05ZDA4LTRlMjYtYjljMS05Y2ZkY2Y4Y2RmYTkiLCJpYXQiOjE3NDExNzE4ODcsImV4cCI6MTc0MTc3NjY4N30.4ogAquMTxqwVd21xqHgNqsyJ6L0CQ-y51JrD5stpuK4"
+}
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## 4. Выход из авторизации
+
+Для выхода из аккаунта отправьте `POST` запрос на `http://localhost:8000/api/auth/sign-out` с access-token в хемдерах:
+
+```json
+{
+  "authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhMjJhY2M4OS05ZDA4LTRlMjYtYjljMS05Y2ZkY2Y4Y2RmYTkiLCJpYXQiOjE3NDExNDc3NjksImV4cCI6MTc0MTc1MjU2OX0.pPE-3jGI9F59c0y_pJkAovsMNRv-UduWkt1AnYj_-Ms",
+}
+```
+
+
+
+
